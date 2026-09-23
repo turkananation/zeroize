@@ -1,0 +1,20 @@
+# Dart / Pub
+.dart_tool/
+.packages
+pubspec.lock
+build/
+doc/api/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+._*
+
+# Test coverage
+coverage/

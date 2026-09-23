@@ -1,0 +1,14 @@
+# Dart / Pub
+
+.dart_tool/
+.packages
+pubspec.lock
+build/
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+.DS_Store
+._*
+coverage/
