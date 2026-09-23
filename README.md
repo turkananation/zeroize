@@ -1,7 +1,7 @@
 # zeroize
 
 [![pub package](https://img.shields.io/pub/v/zeroize.svg)](https://pub.dev/packages/zeroize)
-[![Dart SDK](https://img.shields.io/badge/SDK-%3E%3D3.3.0-blue)](https://dart.dev)
+[![Dart SDK](https://img.shields.io/badge/SDK-%3E%3D3.12.0-blue)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Best-effort secret memory zeroing, constant-time operations, and secure
