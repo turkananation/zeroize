@@ -6,7 +6,7 @@
 `meta` for annotations). It is organised into five logical layers, each
 building on the one below.
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │  Public API Layer                                    │
 │  SecretBytes · SecretIntList · SecretBuffer          │
@@ -54,7 +54,7 @@ that was just written, the compiler must establish a happens-before
 edge: *the writes must occur before the non-inlineable read*. DSE is
 therefore prevented.
 
-```
+```text
 Write to data[i]  →  dseOpaqueRead(data, last)  →  _dseOpaqueSink changes
      ↑                       ↑
   Cannot be              Cannot be
@@ -77,6 +77,7 @@ Dispatches to a set of `@pragma('vm:never-inline')` single-pass writers
 (`_fillConst`, `_fillRandom`) through the `ZeroizePattern` enum.
 
 Each pattern interleaves writes with DSE-guard reads, ensuring:
+
 - The writes are observable to the compiler.
 - The final state of the buffer is always zero.
 - Multiple passes provide bit-pattern diversity against memory remanence.
@@ -92,7 +93,7 @@ corresponding bytes in the original.
 Implements the standard branchless techniques:
 
 | Technique | Implementation |
-|-----------|---------------|
+| ----------- | --------------- |
 | CT compare | XOR accumulator scanned full length |
 | CT select | Two's-complement mask: `-(condition)` |
 | CT conditional copy | Byte-level: `(mask & src[i]) \| (notMask & dst[i])` |
@@ -109,7 +110,7 @@ which are emitted as single-cycle instructions on x64/arm64.
 ### Platform Contract
 
 | Build | CT? | Notes |
-|-------|-----|-------|
+| ------- | ----- | ------- |
 | AOT release | ✓ Source-level CT | Primary target |
 | JIT debug/profile | ✗ | JIT may speculate |
 | JS | ✗ | JS engine rewrites freely |
@@ -215,7 +216,7 @@ collected old generation buffer without being zeroed.
 
 ## File Map
 
-```
+```text
 lib/
 ├── zeroize.dart                    ← Main barrel export
 └── src/

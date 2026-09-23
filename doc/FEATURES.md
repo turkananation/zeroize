@@ -5,7 +5,7 @@
 ### Multi-Pass Secure Zeroing
 
 | API | Target | Description |
-|-----|--------|-------------|
+| ----- | -------- | ------------- |
 | `secureZero(Uint8List)` | Byte buffer | Overwrites with chosen pattern |
 | `secureZeroIntList(List<int>)` | Int list | For NTT polynomial arrays |
 | `secureZeroRange(Uint8List, offset, count)` | Sub-region | Partial zeroing via sublistView |
@@ -13,7 +13,7 @@
 #### Overwrite Patterns (`ZeroizePattern`)
 
 | Pattern | Passes | Description |
-|---------|--------|-------------|
+| --------- | -------- | ------------- |
 | `zero` | 1 | Single `0x00` pass (NIST SP 800-88 Rev 1) |
 | `ones` | 1 | Single `0xFF` pass |
 | `twoPass` | 2 | **Default** — `0xFF` then `0x00` |
@@ -26,6 +26,7 @@
 ### DSE-Resistant Zeroing Engine
 
 Dead Store Elimination in Dart AOT is defeated via:
+
 - `@pragma('vm:never-inline')` boundary functions that observably read
   through the buffer after every pass.
 - A package-level mutable sink variable (`_dseOpaqueSink`) with 32-bit
@@ -77,6 +78,7 @@ Dead Store Elimination in Dart AOT is defeated via:
 ### Constant-Time Primitives (`ct_ops.dart`)
 
 #### Byte-Sequence Comparison
+
 - `ctCompareBytes(Uint8List, Uint8List)` — full-scan CT comparison
 - `ctEquals(Uint8List, Uint8List)` — bool variant
 - `ctCompareIntLists(List<int>, List<int>)` — for polynomial arrays
@@ -84,22 +86,27 @@ Dead Store Elimination in Dart AOT is defeated via:
 - `ctVerifyTag(Uint8List, Uint8List)` — AEAD/MAC tag verification with dummy scan on length mismatch
 
 #### Integer Selection
+
 - `ctSelect(condition, ifOne, ifZero)` — branchless int select
 - `ctSelectByte(condition, ifOne, ifZero)` — byte-masked variant
 
 #### Buffer Operations
+
 - `ctConditionalCopy(condition, dst, src)` — branchless copy
 - `ctConditionalSwap(condition, a, b)` — branchless swap using XOR delta
 
 #### Integer Predicates
+
 - `ctLessThan` / `ctGreaterThan` / `ctLessOrEqual` / `ctGreaterOrEqual`
 - `ctIntEquals` / `ctIsZero` / `ctIsNonZero`
 
 #### Integer Arithmetic
+
 - `ctAbs` — branchless absolute value
 - `ctClamp` — branchless clamp to [min, max]
 
 #### Modular Arithmetic (ML-KEM / ML-DSA)
+
 - `ctReduceOnce(v, mod)` — single conditional subtract into [0, mod)
 - `ctLiftToPositive(v, mod)` — single conditional add from negative range
 - `ctConditionalAdd(condition, v, mod)`
@@ -110,11 +117,13 @@ Dead Store Elimination in Dart AOT is defeated via:
 ### Lifecycle Management
 
 #### `Zeroizable` Mixin
+
 - `zeroize()` — must-implement, idempotent
 - `useAndZeroize(fn)` — sync: run fn, then unconditionally zeroize
 - `useAndZeroizeAsync(fn)` — async variant
 
 #### `ZeroizeScope`
+
 - RAII scope tracking multiple `Zeroizable` instances.
 - LIFO disposal order.
 - `run(fn)` — synchronous factory runner.
@@ -122,6 +131,7 @@ Dead Store Elimination in Dart AOT is defeated via:
 - Catches individual zeroize failures so all secrets are attempted.
 
 #### Guard Functions
+
 - `withZeroizedBytes(data, fn)` — scoped zeroing for `Uint8List` temporaries.
 - `withZeroizedBytesAsync(data, fn)` — async variant.
 - `withZeroized(secrets, fn)` — LIFO zeroing for multiple `Zeroizable`.
@@ -132,12 +142,14 @@ Dead Store Elimination in Dart AOT is defeated via:
 ### Extension Methods
 
 #### `Uint8List`
+
 - `.secureZeroize({pattern})` — inline zero
 - `.xorWith(Uint8List)` — element-wise XOR returning new buffer
 - `.isAllZero` — bool property
 - `.toHexString()` — lowercase hex for debug logging
 
 #### `List<int>`
+
 - `.secureZeroize({pattern})` — inline zero
 
 ---
@@ -145,6 +157,7 @@ Dead Store Elimination in Dart AOT is defeated via:
 ### Configuration
 
 #### `ZeroizeConfig`
+
 - `defaultPattern` / `setDefaultPattern(pattern)` — global pattern setting
 - `liveSecretCount` — live `SecretBytes` instances (debug builds only)
 - `totalAllocated` — total allocated since isolate start (debug builds only)
@@ -162,7 +175,7 @@ Dead Store Elimination in Dart AOT is defeated via:
 ### Platform Support
 
 | Platform | Zeroing | Constant-Time |
-|----------|---------|---------------|
+| ---------- | --------- | --------------- |
 | Dart VM (AOT release) | ✅ Best-effort | ✅ Source-level CT |
 | Flutter Android/iOS (release) | ✅ Best-effort | ✅ Source-level CT |
 | Flutter macOS/Windows/Linux (release) | ✅ Best-effort | ✅ Source-level CT |

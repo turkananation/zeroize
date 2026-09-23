@@ -130,7 +130,7 @@ dm-crypt) as a system-level mitigation.
 
 ## Deployment Checklist
 
-```
+```text
 ✓ Compile as AOT release binary (dart compile exe / flutter build --release)
 ✓ Always call dispose() explicitly on SecretBytes/SecretIntList/SecretBuffer
 ✓ Use ZeroizeScope to guarantee disposal even on exceptions
