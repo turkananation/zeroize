@@ -15,8 +15,7 @@ final class PseudoRng {
   /// Creates a PRNG seeded with [seed]. A seed of zero is replaced with a
   /// default non-zero constant.
   PseudoRng(int seed)
-      : _state =
-            (seed & 0xFFFFFFFF) == 0 ? 0x5A5A5A5A : (seed & 0xFFFFFFFF);
+      : _state = (seed & 0xFFFFFFFF) == 0 ? 0x5A5A5A5A : (seed & 0xFFFFFFFF);
 
   /// Creates a PRNG seeded from the current microsecond timestamp mixed
   /// with a fixed constant. Non-deterministic across calls.

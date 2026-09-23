@@ -1,6 +1,6 @@
-import 'package:meta/meta.dart';
+import 'package:meta/meta_meta.dart';
 
-/// Marks a class, field, parameter, or local variable as holding sensitive
+/// Marks a class, field, parameter, or top-level variable as holding sensitive
 /// material that MUST be zeroed via [Zeroizable.zeroize] or
 /// [SecretBytes.dispose] before it leaves its containing scope.
 ///
@@ -10,13 +10,14 @@ import 'package:meta/meta.dart';
   TargetKind.classType,
   TargetKind.field,
   TargetKind.parameter,
-  TargetKind.localVariable,
+  TargetKind.topLevelVariable,
 })
 final class Sensitive {
+  /// Creates a [Sensitive] annotation.
   const Sensitive();
 }
 
-/// Convenience constant for [@Sensitive].
+/// Convenience constant for [Sensitive].
 const sensitive = Sensitive();
 
 /// Marks a function or method as requiring constant-time implementation.
@@ -29,8 +30,9 @@ const sensitive = Sensitive();
 /// The annotation is informational — it does not enforce CT at compile time.
 @Target({TargetKind.function, TargetKind.method})
 final class ConstantTime {
+  /// Creates a [ConstantTime] annotation.
   const ConstantTime();
 }
 
-/// Convenience constant for [@ConstantTime].
+/// Convenience constant for [ConstantTime].
 const constantTime = ConstantTime();

@@ -6,11 +6,11 @@ import '../core/secure_zero.dart';
 
 /// Secure-zeroing convenience methods on [Uint8List].
 extension Uint8ListZeroize on Uint8List {
-  /// Overwrites [this] in-place using [pattern].
+  /// Overwrites this list in-place using [pattern].
   void secureZeroize({ZeroizePattern? pattern}) =>
       secureZero(this, pattern: pattern ?? ZeroizeConfig.defaultPattern);
 
-  /// Returns a new [Uint8List] that is the element-wise XOR of [this] and
+  /// Returns a new [Uint8List] that is the element-wise XOR of this and
   /// [other].  Both lists MUST have the same length.
   Uint8List xorWith(Uint8List other) {
     assert(length == other.length, 'xorWith: length mismatch');
@@ -45,9 +45,8 @@ extension Uint8ListZeroize on Uint8List {
 
 /// Secure-zeroing convenience methods on [List<int>].
 extension ListIntZeroize on List<int> {
-  /// Overwrites [this] in-place using [pattern].
-  void secureZeroize({ZeroizePattern? pattern}) =>
-      secureZeroIntList(
+  /// Overwrites this list in-place using [pattern].
+  void secureZeroize({ZeroizePattern? pattern}) => secureZeroIntList(
         this,
         pattern: pattern ?? ZeroizeConfig.defaultPattern,
       );

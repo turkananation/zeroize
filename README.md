@@ -19,7 +19,7 @@ passwords, or authentication tags.
 ## Features
 
 | Feature | API |
-|---------|-----|
+| --------- | ----- |
 | Multi-pass secure zeroing | `secureZero`, `secureZeroIntList`, `secureZeroRange` |
 | 6 overwrite patterns | `ZeroizePattern` (zero · ones · twoPass · dod · pseudoRandom · gutmann7) |
 | DSE-resistant zeroing | `@pragma('vm:never-inline')` guard pattern |
@@ -236,7 +236,7 @@ void main() {
 ## Choosing a Pattern
 
 | Pattern | Passes | Use Case |
-|---------|--------|----------|
+| --------- | -------- | ---------- |
 | `zero` | 1 | Fastest; NIST SP 800-88 Rev 1 for DRAM |
 | `ones` | 1 | Complement baseline |
 | `twoPass` | 2 | **Default** — strong DSE resistance |
@@ -261,7 +261,7 @@ handshake secret management, and NTT polynomial zeroing.
 ## Platform Support
 
 | Target | Zeroing | Constant-Time |
-|--------|---------|---------------|
+| -------- | --------- | --------------- |
 | Dart VM — AOT release | ✅ Best-effort | ✅ Source-level CT |
 | Flutter Android/iOS — release | ✅ Best-effort | ✅ Source-level CT |
 | Flutter macOS/Windows/Linux — release | ✅ Best-effort | ✅ Source-level CT |

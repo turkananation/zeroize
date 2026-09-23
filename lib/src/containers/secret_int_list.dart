@@ -18,7 +18,7 @@ final _intListFinalizer = Finalizer<_IntListToken>(
 /// integer list rather than a byte array.
 ///
 /// Semantics mirror [SecretBytes] but for full Dart `int` values.
-final class SecretIntList with Zeroizable implements Finalizable {
+final class SecretIntList with Zeroizable {
   List<int>? _data;
   final ZeroizePattern _pattern;
   bool _disposed = false;

@@ -64,15 +64,14 @@ int ctCompareIntLists(List<int> a, List<int> b) {
 /// Returns `true` iff [a] and [b] (as [List<int>]) are identical in CT.
 @constantTime
 @pragma('vm:prefer-inline')
-bool ctEqualsIntLists(List<int> a, List<int> b) =>
-    ctCompareIntLists(a, b) == 0;
+bool ctEqualsIntLists(List<int> a, List<int> b) => ctCompareIntLists(a, b) == 0;
 
 // ─── Authentication tag verification ─────────────────────────────────────────
 
 /// Constant-time verification of two authentication tags.
 ///
 /// Use this for **every** AEAD/MAC tag comparison.  Using `==` or
-/// [ListEquality] creates a timing oracle that leaks the position of the
+/// `ListEquality` creates a timing oracle that leaks the position of the
 /// first differing byte.
 ///
 /// When tags differ in length a dummy scan of [expected] still runs to
@@ -114,12 +113,13 @@ bool ctVerifyTag(Uint8List expected, Uint8List received) {
 @constantTime
 @pragma('vm:prefer-inline')
 int ctSelect(int condition, int ifOne, int ifZero) {
-  assert(condition == 0 || condition == 1, 'ctSelect: condition must be 0 or 1');
+  assert(
+      condition == 0 || condition == 1, 'ctSelect: condition must be 0 or 1');
   final mask = -condition;
   return (mask & ifOne) | (~mask & ifZero);
 }
 
-/// Constant-time byte select; output masked to [0, 255].
+/// Constant-time byte select; output masked to `[0, 255]`.
 /// [condition] MUST be `0` or `1`.
 @constantTime
 @pragma('vm:prefer-inline')
@@ -273,5 +273,4 @@ int ctReduceOnce(int v, int mod) =>
 /// conditional addition.
 @constantTime
 @pragma('vm:prefer-inline')
-int ctLiftToPositive(int v, int mod) =>
-    ctConditionalAdd((v >> 62) & 1, v, mod);
+int ctLiftToPositive(int v, int mod) => ctConditionalAdd((v >> 62) & 1, v, mod);

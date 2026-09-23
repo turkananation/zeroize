@@ -54,7 +54,7 @@ final class SecretBuffer with Zeroizable {
 
   // ─── Write ─────────────────────────────────────────────────────────────────
 
-  /// Appends a single byte, masked to [0, 255].
+  /// Appends a single byte, masked to `[0, 255]`.
   void addByte(int byte) {
     _assertWritable();
     _ensureCapacity(_length + 1);
@@ -70,7 +70,7 @@ final class SecretBuffer with Zeroizable {
     _length += bytes.length;
   }
 
-  /// Appends all integers from [bytes], each masked to [0, 255].
+  /// Appends all integers from [bytes], each masked to `[0, 255]`.
   void addList(List<int> bytes) {
     if (bytes.isEmpty) return;
     _assertWritable();

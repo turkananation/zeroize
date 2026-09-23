@@ -37,6 +37,7 @@ final class PasswordInput {
   String? _password;
   bool _disposed = false;
 
+  /// Creates a [PasswordInput] wrapping [password].
   PasswordInput(String password) : _password = password;
 
   /// Whether [dispose] has been called.
@@ -103,6 +104,5 @@ final class PasswordInput {
   }
 
   @override
-  String toString() =>
-      'PasswordInput(${_disposed ? 'disposed' : 'live'})';
+  String toString() => 'PasswordInput(${_disposed ? 'disposed' : 'live'})';
 }

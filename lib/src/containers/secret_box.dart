@@ -62,7 +62,7 @@ final class SecretBox<T> with Zeroizable {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    final v = _value!;
+    final v = _value as T;
     _value = null;
     _zeroCallback(v);
   }
@@ -72,6 +72,5 @@ final class SecretBox<T> with Zeroizable {
   }
 
   @override
-  String toString() =>
-      'SecretBox<$T>(${_disposed ? 'disposed' : 'live'})';
+  String toString() => 'SecretBox<$T>(${_disposed ? 'disposed' : 'live'})';
 }

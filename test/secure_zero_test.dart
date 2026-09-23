@@ -4,15 +4,16 @@ import 'package:test/test.dart';
 import 'package:zeroize/zeroize.dart';
 
 void main() {
-  group('secureZero — all patterns leave memory zeroed', () {
+  group('secureZero — patterns overwrite memory correctly', () {
     for (final pattern in ZeroizePattern.values) {
       test(pattern.name, () {
         final data = Uint8List.fromList(
           List<int>.generate(256, (i) => (i * 37 + 13) & 0xFF),
         );
         secureZero(data, pattern: pattern);
-        expect(data.every((b) => b == 0), isTrue,
-            reason: 'Pattern ${pattern.name} left non-zero bytes');
+        final expectedByte = pattern == ZeroizePattern.ones ? 0xFF : 0x00;
+        expect(data.every((b) => b == expectedByte), isTrue,
+            reason: 'Pattern ${pattern.name} left unexpected bytes');
       });
     }
   });
@@ -52,10 +53,44 @@ void main() {
       expect(data, equals([1, 2, 3]));
     });
 
+    test('negative count is a no-op', () {
+      final data = Uint8List.fromList([1, 2, 3]);
+      secureZeroRange(data, 1, -1);
+      expect(data, equals([1, 2, 3]));
+    });
+
+    test('single byte at the end of buffer', () {
+      final data = Uint8List.fromList([1, 2, 3, 4]);
+      secureZeroRange(data, 3, 1);
+      expect(data, equals([1, 2, 3, 0]));
+    });
+
+    test('zeroes with explicit pattern', () {
+      final data = Uint8List.fromList([0xFF, 0xFF, 0xFF, 0xFF]);
+      secureZeroRange(data, 1, 2, pattern: ZeroizePattern.dod);
+      expect(data, equals([0xFF, 0x00, 0x00, 0xFF]));
+    });
+
     test('zeroes the full buffer via range', () {
       final data = Uint8List.fromList([0xFF, 0xFF, 0xFF]);
       secureZeroRange(data, 0, 3);
       expect(data.every((b) => b == 0), isTrue);
+    });
+
+    test('asserts when offset is out of bounds', () {
+      final data = Uint8List.fromList([1, 2, 3]);
+      expect(
+        () => secureZeroRange(data, -1, 2),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
+    test('asserts when range exceeds buffer length', () {
+      final data = Uint8List.fromList([1, 2, 3]);
+      expect(
+        () => secureZeroRange(data, 2, 2),
+        throwsA(isA<AssertionError>()),
+      );
     });
   });
 
@@ -80,8 +115,9 @@ void main() {
       for (final pattern in ZeroizePattern.values) {
         final data = List<int>.generate(32, (i) => i * 100);
         secureZeroIntList(data, pattern: pattern);
-        expect(data.every((v) => v == 0), isTrue,
-            reason: 'Pattern ${pattern.name} left non-zero elements');
+        final expected = pattern == ZeroizePattern.ones ? 0xFF : 0;
+        expect(data.every((v) => v == expected), isTrue,
+            reason: 'Pattern ${pattern.name} left unexpected elements');
       }
     });
   });
@@ -103,6 +139,12 @@ void main() {
       final a = Uint8List.fromList([0xFF, 0x00, 0xAA]);
       final b = Uint8List.fromList([0x0F, 0xFF, 0x55]);
       expect(a.xorWith(b), equals([0xF0, 0xFF, 0xFF]));
+    });
+
+    test('xorWith asserts on length mismatch', () {
+      final a = Uint8List.fromList([1, 2, 3]);
+      final b = Uint8List.fromList([1, 2]);
+      expect(() => a.xorWith(b), throwsA(isA<AssertionError>()));
     });
 
     test('isAllZero: true for zero buffer', () {

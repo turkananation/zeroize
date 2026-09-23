@@ -19,6 +19,7 @@ final class ZeroizeScope {
   final List<Zeroizable> _tracked = [];
   bool _disposed = false;
 
+  /// Creates an empty [ZeroizeScope].
   ZeroizeScope();
 
   /// Whether [dispose] has been called.

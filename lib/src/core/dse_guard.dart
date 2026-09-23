@@ -13,6 +13,7 @@
 ///
 /// Result: writes to a buffer immediately before a call to [dseOpaqueRead]
 /// or [dseOpaqueReadFold] cannot be classified as dead stores.
+library;
 
 // Initialised to a non-zero 32-bit value so the compiler cannot
 // constant-fold the XOR chain to a no-op, and the value stays within

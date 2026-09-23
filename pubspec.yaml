@@ -1,12 +1,12 @@
 name: zeroize
 description: >-
   Best-effort secret memory zeroing, constant-time operations, and secure
-  containers for pure Dart. No FFI or dart:io required. Designed for
-  post-quantum cryptography and security-critical applications.
+  containers for pure Dart. No FFI or dart:io required.
 version: 0.1.0
 homepage: https://github.com/turkananation/zeroize
 repository: https://github.com/turkananation/zeroize
 issue_tracker: https://github.com/turkananation/zeroize/issues
+documentation: https://pub.dev/documentation/zeroize/latest/
 
 topics:
   - cryptography
@@ -16,11 +16,11 @@ topics:
   - constant-time
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: ^3.12.0
 
 dependencies:
   meta: ^1.10.0
 
 dev_dependencies:
-  lints: ^4.0.0
+  lints: ^6.1.0
   test: ^1.25.0

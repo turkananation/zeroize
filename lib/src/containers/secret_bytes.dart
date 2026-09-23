@@ -65,7 +65,7 @@ final _finalizer = Finalizer<_FinalizerToken>(
 /// - GC-copied intermediate buffers may not be zeroed — this is an
 ///   acknowledged limitation of pure Dart (see package README).
 /// - Compile to AOT release for maximum DSE resistance.
-final class SecretBytes with Zeroizable implements Finalizable {
+final class SecretBytes with Zeroizable {
   Uint8List? _data;
   final ZeroizePattern _pattern;
   bool _disposed = false;
@@ -114,7 +114,7 @@ final class SecretBytes with Zeroizable implements Finalizable {
   /// Creates a [SecretBytes] by generating each byte with [generator].
   ///
   /// Avoids a plain intermediate [List<int>] in the caller's scope.
-  /// [generator] receives the byte index and MUST return a value in [0, 255].
+  /// [generator] receives the byte index and MUST return a value in `[0, 255]`.
   factory SecretBytes.generate(
     int length,
     int Function(int index) generator, {
@@ -142,7 +142,7 @@ final class SecretBytes with Zeroizable implements Finalizable {
 
   /// Provides a **read-only** window into the backing buffer.
   ///
-  /// **Do NOT store a reference to [bytes] beyond the scope of [fn].**
+  /// **Do NOT store a reference to `bytes` beyond the scope of [fn].**
   /// Retaining it defeats the disposal guarantee entirely.
   T use<T>(T Function(Uint8List bytes) fn) {
     _assertLive();
@@ -187,7 +187,7 @@ final class SecretBytes with Zeroizable implements Finalizable {
     );
   }
 
-  /// Returns a new [SecretBytes] that is the concatenation of [this] and
+  /// Returns a new [SecretBytes] that is the concatenation of `this` and
   /// [other].
   SecretBytes concat(SecretBytes other) {
     _assertLive();

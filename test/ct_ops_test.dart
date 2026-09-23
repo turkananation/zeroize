@@ -57,8 +57,8 @@ void main() {
   group('ctEquals', () {
     test('true for identical', () {
       final buf = Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]);
-      expect(ctEquals(buf, Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF])),
-          isTrue);
+      expect(
+          ctEquals(buf, Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF])), isTrue);
     });
 
     test('false for different content', () {
@@ -91,8 +91,7 @@ void main() {
     });
     test('works with negative integers', () {
       expect(ctCompareIntLists([-3329, 0, 3328], [-3329, 0, 3328]), equals(0));
-      expect(
-          ctCompareIntLists([-3329, 0, 3328], [-3329, 0, 3329]),
+      expect(ctCompareIntLists([-3329, 0, 3328], [-3329, 0, 3329]),
           isNot(equals(0)));
     });
   });

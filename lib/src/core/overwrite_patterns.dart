@@ -1,6 +1,6 @@
 /// Byte overwrite strategy used during secure zeroing.
 ///
-/// Every pattern ends with a [dseOpaqueRead] or [dseOpaqueReadFold] call
+/// Every pattern ends with a `dseOpaqueRead` or `dseOpaqueReadFold` call
 /// after each pass to anchor the writes in the compiler's dependency graph
 /// and prevent Dead Store Elimination.
 ///
@@ -40,7 +40,7 @@ enum ZeroizePattern {
   /// Two passes: pseudo-random bytes, then `0x00`.
   ///
   /// Provides bit-pattern diversity while leaving memory in a known-zero
-  /// state.  Uses the package's internal [PseudoRng] — not
+  /// state.  Uses the package's internal `PseudoRng` — not
   /// cryptographically secure.
   pseudoRandom,
 
