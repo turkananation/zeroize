@@ -48,6 +48,7 @@ export 'src/containers/secret_box.dart';
 export 'src/containers/secret_buffer.dart';
 export 'src/containers/secret_bytes.dart';
 export 'src/containers/secret_int_list.dart';
+export 'src/containers/secret_transfer.dart';
 export 'src/core/overwrite_patterns.dart';
 export 'src/core/secure_zero.dart';
 export 'src/ct/ct_ops.dart';

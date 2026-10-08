@@ -24,6 +24,7 @@ passwords, or authentication tags.
 | 6 overwrite patterns | `ZeroizePattern` (zero · ones · twoPass · dod · pseudoRandom · gutmann7) |
 | DSE-resistant zeroing | `@pragma('vm:never-inline')` guard pattern |
 | Finalizer-backed container | `SecretBytes` |
+| Isolate-safe secret transfer | `SecretTransfer` · `SecretBytes.intoTransfer()` |
 | Integer-list container | `SecretIntList` |
 | Incremental accumulator | `SecretBuffer` |
 | Generic secret wrapper | `SecretBox<T>` |
@@ -138,6 +139,38 @@ key.mutate((bytes) => fillFromKdf(bytes));
 Uint8List leaked;
 key.use((bytes) => leaked = bytes);   // never do this
 ```
+
+### `SecretTransfer` — moving a secret across an isolate boundary
+
+`SecretBytes` cannot be sent to another isolate: it holds a `Finalizer` token and
+a non-sendable buffer. `SecretTransfer` is the sendable handle.
+
+```dart
+import 'dart:isolate';
+
+final secret = SecretBytes.fromUint8List(rawKey);
+final transfer = secret.intoTransfer();  // `secret` is zeroed and disposed here
+
+// Runs in a different isolate.
+final remote = await Isolate.run(() => transfer.materializeSecret());
+try {
+  return useTheKey(remote);
+} finally {
+  remote.dispose();
+}
+```
+
+One live copy exists at each step: `intoTransfer` zeroes the source, and
+`materializeSecret` zeroes the materialized buffer as soon as the `SecretBytes`
+copy exists.
+
+Use `materializeBytes()` only when an API demands a bare `Uint8List` (for example
+`PointyCastle` or `package:cryptography`) — the caller then owns and must wipe
+that buffer. Use `moveInto(target)` to move straight into an existing container.
+
+Two honest limits: the buffer inside `TransferableTypedData` is runtime-managed
+and cannot be overwritten from Dart, and single-consumption is per isolate copy,
+so send a transfer to exactly one receiver.
 
 ### `SecretBuffer` — incremental building
 

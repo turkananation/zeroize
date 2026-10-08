@@ -6,6 +6,7 @@ import '../core/overwrite_patterns.dart';
 import '../core/secure_zero.dart';
 import '../errors.dart';
 import '../lifecycle/zeroizable.dart';
+import 'secret_transfer.dart';
 
 // ─── Finalizer setup ──────────────────────────────────────────────────────────
 
@@ -196,6 +197,32 @@ final class SecretBytes with Zeroizable {
     out.setRange(0, length, _data!);
     other.use((b) => out.setRange(length, out.length, b));
     return SecretBytes._(out, _pattern);
+  }
+
+  // ─── Isolate transfer ─────────────────────────────────────────────────────
+
+  /// Moves this container's bytes into a sendable [SecretTransfer].
+  ///
+  /// This is a **move, not a copy**: the bytes are copied into the transfer's
+  /// transferable buffer and this container is zeroed and disposed in the same
+  /// call, so exactly one live copy of the secret exists afterwards.
+  ///
+  /// Use this instead of extracting a plain `Uint8List` and hoping the
+  /// receiver wipes it:
+  ///
+  /// ```dart
+  /// final transfer = key.intoTransfer();
+  /// final remote = await Isolate.run(() => transfer.materializeSecret());
+  /// ```
+  ///
+  /// After this call this container is disposed; [use], [mutate] and [length]
+  /// throw [ZeroizeDisposedError].
+  SecretTransfer intoTransfer() {
+    _assertLive();
+    final data = _data!;
+    final transfer = SecretTransfer.fromBytes(data, pattern: _pattern);
+    dispose();
+    return transfer;
   }
 
   // ─── Constant-time comparison ─────────────────────────────────────────────
