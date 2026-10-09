@@ -37,7 +37,9 @@ final class SecretBuffer with Zeroizable {
   /// The actual allocation is at least [_kMinCapacity] bytes.
   SecretBuffer({int initialCapacity = _kMinCapacity, ZeroizePattern? pattern})
     : _buf = Uint8List(initialCapacity.clamp(_kMinCapacity, 1 << 30)),
-      _pattern = pattern ?? ZeroizeConfig.defaultPattern;
+      _pattern = pattern ?? ZeroizeConfig.defaultPattern {
+    ZeroizeConfig.trackAllocateBuffer();
+  }
 
   /// Accumulates every chunk of [stream] into a new [SecretBuffer].
   ///
@@ -173,6 +175,9 @@ final class SecretBuffer with Zeroizable {
     // Zero the full internal allocation (including unused capacity).
     secureZero(_buf, pattern: _pattern);
     _length = 0;
+    // Decremented only after the wipe, so the debug counter can never report
+    // "no leak" for a buffer whose memory was not actually zeroed.
+    ZeroizeConfig.trackDisposeBuffer();
     return result;
   }
 
@@ -187,6 +192,9 @@ final class SecretBuffer with Zeroizable {
     _disposed = true;
     secureZero(_buf, pattern: _pattern);
     _length = 0;
+    // After the wipe, and unreachable twice: `seal` sets `_disposed` before
+    // this can run again, and the guard above returns early in that case.
+    ZeroizeConfig.trackDisposeBuffer();
   }
 
   // ─── Internals ─────────────────────────────────────────────────────────────
