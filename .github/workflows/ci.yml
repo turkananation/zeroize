@@ -1,0 +1,107 @@
+name: CI
+
+# zeroize had no CI before this file. The package is the base of every other
+# package in the workspace, so a regression here is a regression everywhere.
+#
+# The gates mirror the AGENTS.md rules that are mechanically checkable:
+#   - `dart analyze` clean (rule 11: full idiomatic modern Dart)
+#   - `dart format` produces no diff (rule 11)
+#   - all tests pass, including the leak assertions in tearDown
+#
+# Zero dependencies are asserted too: this package's whole value proposition
+# is that it pulls in nothing, so a new runtime dependency must be a deliberate,
+# reviewed change rather than an accident of an upgrade.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Verify formatting
+        run: |
+          dart format --output=none --set-exit-if-changed .
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: dart test
+
+      - name: Publish dry run
+        run: dart pub publish --dry-run
+
+  zero-dependencies:
+    name: Zero dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Assert meta is the only runtime dependency
+        run: |
+          set -euo pipefail
+          deps="$(python3 -c "
+          import pathlib, re
+          t = pathlib.Path('pubspec.yaml').read_text()
+          m = re.search(r'^dependencies:\n((?:\s{2}\S.*\n)+)', t, re.M)
+          print(' '.join(sorted(re.findall(r'^\s{2}([a-z0-9_]+):', m.group(1), re.M))))
+          ")"
+          echo "runtime dependencies: $deps"
+          if [ "$deps" != "meta" ]; then
+            echo "::error::expected the only runtime dependency to be 'meta', got '$deps'."
+            echo "Adding one is allowed, but it must be a deliberate, reviewed change"
+            echo "to AGENTS.md and this gate."
+            exit 1
+          fi

@@ -1,7 +1,8 @@
 name: zeroize
 description: >-
-  Best-effort secret memory zeroing, constant-time operations, and secure
-  containers for pure Dart. No FFI or dart:io required.
+  DSE-resistant secret memory zeroing, multi-pass overwrite patterns,
+  constant-time primitives, RAII scopes, secure containers, isolate-safe
+  transfer. Pure Dart, no FFI, meta-only.
 version: 0.2.0
 homepage: https://github.com/turkananation/zeroize
 repository: https://github.com/turkananation/zeroize

@@ -39,6 +39,45 @@ final class SecretBuffer with Zeroizable {
     : _buf = Uint8List(initialCapacity.clamp(_kMinCapacity, 1 << 30)),
       _pattern = pattern ?? ZeroizeConfig.defaultPattern;
 
+  /// Accumulates every chunk of [stream] into a new [SecretBuffer].
+  ///
+  /// Each element is appended as it arrives, so the buffer never holds the whole
+  /// stream twice: peak secret memory is one internal allocation plus the chunk
+  /// currently being appended. Empty chunks are skipped.
+  ///
+  /// The returned buffer is **not** sealed — the caller owns it and must call
+  /// [seal] or [dispose].
+  ///
+  /// If [stream] emits an error, the partially accumulated buffer is
+  /// [dispose]d before the error is rethrown, so no partial secret material is
+  /// left live in the heap by a failed stream.
+  ///
+  /// Not reentrant-safe: do not share a buffer across concurrent `add` calls.
+  ///
+  /// Throws whatever [stream] emits, after wiping the partial buffer.
+  static Future<SecretBuffer> fromStream(
+    Stream<List<int>> stream, {
+    int initialCapacity = _kMinCapacity,
+    ZeroizePattern? pattern,
+  }) async {
+    final buffer = SecretBuffer(
+      initialCapacity: initialCapacity,
+      pattern: pattern,
+    );
+    try {
+      await for (final chunk in stream) {
+        if (chunk.isEmpty) continue;
+        buffer.addList(chunk);
+      }
+      return buffer;
+    } catch (_) {
+      // A stream that fails mid-stream leaves secret bytes accumulated here.
+      // Wipe them before the error propagates.
+      buffer.dispose();
+      rethrow;
+    }
+  }
+
   // ─── Properties ────────────────────────────────────────────────────────────
 
   /// Number of bytes written so far.
@@ -77,6 +116,28 @@ final class SecretBuffer with Zeroizable {
       _buf[_length + i] = bytes[i] & 0xFF;
     }
     _length += bytes.length;
+  }
+
+  /// Appends the contents of [other] to this buffer.
+  ///
+  /// Copies directly into this buffer's storage — no intermediate list is
+  /// allocated. [other] is **not** consumed or disposed; it remains fully
+  /// usable, and its bytes are copied, so later mutation of [other] does not
+  /// affect what was appended.
+  ///
+  /// Bytes are read through [SecretBytes.use], so no reference to [other]'s
+  /// backing buffer outlives the copy.
+  ///
+  /// Throws [ZeroizeDisposedError] if [other] has already been disposed, and
+  /// [ZeroizeContractError] if this buffer is sealed or disposed.
+  void addSecretBytes(SecretBytes other) {
+    other.use((bytes) {
+      if (bytes.isEmpty) return;
+      _assertWritable();
+      _ensureCapacity(_length + bytes.length);
+      _buf.setRange(_length, _length + bytes.length, bytes);
+      _length += bytes.length;
+    });
   }
 
   /// Appends [byte] repeated [count] times.

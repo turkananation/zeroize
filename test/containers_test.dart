@@ -373,6 +373,107 @@ void main() {
       sealed.use((b) => expect(b, equals([0xFF, 0x00])));
       sealed.dispose();
     });
+
+    test('addSecretBytes appends the contents of another container', () {
+      final src = SecretBytes.fromList([0xDE, 0xAD, 0xBE, 0xEF]);
+      final buf = SecretBuffer();
+      buf.addByte(0x01);
+      buf.addSecretBytes(src);
+      expect(buf.length, equals(5));
+      final sealed = buf.seal();
+      sealed.use((b) => expect(b, equals([0x01, 0xDE, 0xAD, 0xBE, 0xEF])));
+      sealed.dispose();
+      src.dispose();
+    });
+
+    test(
+      'addSecretBytes copies, leaving the source usable and independent',
+      () {
+        final src = SecretBytes.fromList([1, 2, 3]);
+        final buf = SecretBuffer();
+        buf.addSecretBytes(src);
+
+        // Mutating the source afterwards must not change what was appended.
+        src.mutate((b) => b[0] = 0xFF);
+        src.use((b) => expect(b[0], equals(0xFF)));
+        expect(src.isDisposed, isFalse, reason: 'source must not be consumed');
+
+        final sealed = buf.seal();
+        sealed.use((b) => expect(b, equals([1, 2, 3])));
+        sealed.dispose();
+        src.dispose();
+      },
+    );
+
+    test('addSecretBytes on an empty source appends nothing', () {
+      final src = SecretBytes.ofLength(0);
+      final buf = SecretBuffer();
+      buf.addByte(0x07);
+      buf.addSecretBytes(src);
+      expect(buf.length, equals(1));
+      buf.seal().dispose();
+      src.dispose();
+    });
+
+    test('addSecretBytes with a disposed source throws', () {
+      final src = SecretBytes.fromList([1, 2, 3]);
+      src.dispose();
+      final buf = SecretBuffer();
+      expect(
+        () => buf.addSecretBytes(src),
+        throwsA(isA<ZeroizeDisposedError>()),
+      );
+      buf.dispose();
+    });
+
+    test('fromStream accumulates every chunk and skips empty ones', () async {
+      final buf = await SecretBuffer.fromStream(
+        Stream<List<int>>.fromIterable([
+          [1, 2],
+          [],
+          [3, 4, 5],
+        ]),
+      );
+      expect(buf.length, equals(5));
+      final sealed = buf.seal();
+      sealed.use((b) => expect(b, equals([1, 2, 3, 4, 5])));
+      sealed.dispose();
+    });
+
+    test('fromStream on an empty stream yields an empty buffer', () async {
+      final buf = await SecretBuffer.fromStream(
+        const Stream<List<int>>.empty(),
+      );
+      expect(buf.length, equals(0));
+      buf.seal().dispose();
+    });
+
+    test('fromStream propagates a stream error', () async {
+      final stream = Stream<List<int>>.multi((controller) {
+        controller.add([1, 2, 3]);
+        controller.addError(StateError('stream failed'));
+      });
+
+      await expectLater(
+        SecretBuffer.fromStream(stream),
+        throwsA(isA<StateError>()),
+      );
+      // Note: the partial buffer built before the failure is disposed inside
+      // fromStream, but SecretBuffer is not registered with ZeroizeConfig's
+      // debug tracker (only SecretBytes is), so that wipe is not observable
+      // from here. See doc/ROADMAP.md.
+    });
+
+    test('fromStream honours a custom pattern', () async {
+      final buf = await SecretBuffer.fromStream(
+        Stream<List<int>>.fromIterable([
+          [9, 9, 9],
+        ]),
+        pattern: ZeroizePattern.zero,
+      );
+      expect(buf.length, equals(3));
+      buf.dispose();
+    });
   });
 
   // ─── SecretBox ────────────────────────────────────────────────────────────
