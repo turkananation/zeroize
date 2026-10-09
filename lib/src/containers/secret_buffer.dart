@@ -35,11 +35,9 @@ final class SecretBuffer with Zeroizable {
   /// Creates a [SecretBuffer] with an optional [initialCapacity].
   ///
   /// The actual allocation is at least [_kMinCapacity] bytes.
-  SecretBuffer({
-    int initialCapacity = _kMinCapacity,
-    ZeroizePattern? pattern,
-  })  : _buf = Uint8List(initialCapacity.clamp(_kMinCapacity, 1 << 30)),
-        _pattern = pattern ?? ZeroizeConfig.defaultPattern;
+  SecretBuffer({int initialCapacity = _kMinCapacity, ZeroizePattern? pattern})
+    : _buf = Uint8List(initialCapacity.clamp(_kMinCapacity, 1 << 30)),
+      _pattern = pattern ?? ZeroizeConfig.defaultPattern;
 
   // ─── Properties ────────────────────────────────────────────────────────────
 

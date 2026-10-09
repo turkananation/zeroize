@@ -57,5 +57,6 @@ export 'src/extensions/uint8list_extensions.dart';
 export 'src/lifecycle/zeroizable.dart';
 export 'src/lifecycle/zeroize_guard.dart';
 export 'src/lifecycle/zeroize_scope.dart';
+
 // dart:isolate is unavailable on web — import separately when needed:
 // import 'package:zeroize/src/utils/isolate_utils.dart';

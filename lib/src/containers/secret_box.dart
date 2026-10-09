@@ -29,8 +29,8 @@ final class SecretBox<T> with Zeroizable {
   /// [zeroCallback] is called with [value] exactly once, when [dispose] is
   /// first called (or when [zeroize] is called via a [ZeroizeScope]).
   SecretBox(T value, void Function(T value) zeroCallback)
-      : _value = value,
-        _zeroCallback = zeroCallback;
+    : _value = value,
+      _zeroCallback = zeroCallback;
 
   /// Whether [dispose] has been called.
   bool get isDisposed => _disposed;

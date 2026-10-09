@@ -76,10 +76,7 @@ void main() {
     test('use after dispose throws ZeroizeDisposedError', () {
       final s = SecretBytes.fromList([1]);
       s.dispose();
-      expect(
-        () => s.use((b) => b[0]),
-        throwsA(isA<ZeroizeDisposedError>()),
-      );
+      expect(() => s.use((b) => b[0]), throwsA(isA<ZeroizeDisposedError>()));
     });
 
     test('length after dispose throws ZeroizeDisposedError', () {
@@ -200,9 +197,7 @@ void main() {
     test('timingSafeEqualsBytes: true for matching bytes', () {
       final s = SecretBytes.fromList([0xDE, 0xAD, 0xBE, 0xEF]);
       expect(
-        s.timingSafeEqualsBytes(
-          Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]),
-        ),
+        s.timingSafeEqualsBytes(Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF])),
         isTrue,
       );
       s.dispose();
@@ -211,9 +206,7 @@ void main() {
     test('timingSafeEqualsBytes: false for different content', () {
       final s = SecretBytes.fromList([0xDE, 0xAD, 0xBE, 0xEF]);
       expect(
-        s.timingSafeEqualsBytes(
-          Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEE]),
-        ),
+        s.timingSafeEqualsBytes(Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEE])),
         isFalse,
       );
       s.dispose();
@@ -330,10 +323,7 @@ void main() {
     test('write after seal throws ZeroizeContractError', () {
       final buf = SecretBuffer();
       buf.seal().dispose();
-      expect(
-        () => buf.addByte(0xFF),
-        throwsA(isA<ZeroizeContractError>()),
-      );
+      expect(() => buf.addByte(0xFF), throwsA(isA<ZeroizeContractError>()));
     });
 
     test('dispose zeroes buffer', () {
@@ -598,9 +588,7 @@ void main() {
     test('ZeroizeScope integrates with SecretBytes', () {
       late Uint8List capturedRef;
       ZeroizeScope.run((scope) {
-        final s = scope.track(
-          SecretBytes.fromList(List<int>.filled(32, 0xAB)),
-        );
+        final s = scope.track(SecretBytes.fromList(List<int>.filled(32, 0xAB)));
         s.mutate((b) => capturedRef = b);
         return 0;
       });
@@ -666,13 +654,10 @@ void main() {
   group('withZeroized', () {
     test('zeroes all secrets in LIFO order', () {
       final order = <int>[];
-      final secrets = List<SecretBox<int>>.generate(
-        3,
-        (i) {
-          final captured = i;
-          return SecretBox<int>(i, (_) => order.add(captured));
-        },
-      );
+      final secrets = List<SecretBox<int>>.generate(3, (i) {
+        final captured = i;
+        return SecretBox<int>(i, (_) => order.add(captured));
+      });
       withZeroized(secrets, () => 'done');
       expect(order, equals([2, 1, 0]));
     });

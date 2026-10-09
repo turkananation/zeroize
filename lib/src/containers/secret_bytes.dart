@@ -72,11 +72,7 @@ final class SecretBytes with Zeroizable {
   bool _disposed = false;
 
   SecretBytes._(Uint8List data, this._pattern) : _data = data {
-    _finalizer.attach(
-      this,
-      (data: data, pattern: _pattern),
-      detach: this,
-    );
+    _finalizer.attach(this, (data: data, pattern: _pattern), detach: this);
     ZeroizeConfig.trackAllocate();
   }
 
@@ -86,10 +82,7 @@ final class SecretBytes with Zeroizable {
   ///
   /// The caller retains ownership of [source] and must zero it separately
   /// if it also contains sensitive material.
-  factory SecretBytes.fromList(
-    List<int> source, {
-    ZeroizePattern? pattern,
-  }) =>
+  factory SecretBytes.fromList(List<int> source, {ZeroizePattern? pattern}) =>
       SecretBytes._(
         Uint8List.fromList(source),
         pattern ?? ZeroizeConfig.defaultPattern,
@@ -99,18 +92,14 @@ final class SecretBytes with Zeroizable {
   factory SecretBytes.fromUint8List(
     Uint8List source, {
     ZeroizePattern? pattern,
-  }) =>
-      SecretBytes._(
-        Uint8List.fromList(source), // always copy — never take ownership
-        pattern ?? ZeroizeConfig.defaultPattern,
-      );
+  }) => SecretBytes._(
+    Uint8List.fromList(source), // always copy — never take ownership
+    pattern ?? ZeroizeConfig.defaultPattern,
+  );
 
   /// Creates a [SecretBytes] of [length] zero bytes.
   factory SecretBytes.ofLength(int length, {ZeroizePattern? pattern}) =>
-      SecretBytes._(
-        Uint8List(length),
-        pattern ?? ZeroizeConfig.defaultPattern,
-      );
+      SecretBytes._(Uint8List(length), pattern ?? ZeroizeConfig.defaultPattern);
 
   /// Creates a [SecretBytes] by generating each byte with [generator].
   ///
@@ -232,22 +221,24 @@ final class SecretBytes with Zeroizable {
     _assertLive();
     other._assertLive();
     if (identical(this, other)) return true;
-    return use((a) => other.use((b) {
-          if (a.length != b.length) {
-            // Scan anyway to avoid length-difference fast-path oracle.
-            var dummy = 0;
-            for (var i = 0; i < a.length; i++) {
-              dummy |= a[i];
-            }
-            dseObserve(dummy);
-            return false;
-          }
-          var diff = 0;
+    return use(
+      (a) => other.use((b) {
+        if (a.length != b.length) {
+          // Scan anyway to avoid length-difference fast-path oracle.
+          var dummy = 0;
           for (var i = 0; i < a.length; i++) {
-            diff |= a[i] ^ b[i];
+            dummy |= a[i];
           }
-          return diff == 0;
-        }));
+          dseObserve(dummy);
+          return false;
+        }
+        var diff = 0;
+        for (var i = 0; i < a.length; i++) {
+          diff |= a[i] ^ b[i];
+        }
+        return diff == 0;
+      }),
+    );
   }
 
   /// Timing-safe equality against a plain [Uint8List].
