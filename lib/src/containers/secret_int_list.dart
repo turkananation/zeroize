@@ -24,11 +24,10 @@ final class SecretIntList with Zeroizable {
   bool _disposed = false;
 
   SecretIntList._(List<int> data, this._pattern) : _data = data {
-    _intListFinalizer.attach(
-      this,
-      (data: data, pattern: _pattern),
-      detach: this,
-    );
+    _intListFinalizer.attach(this, (
+      data: data,
+      pattern: _pattern,
+    ), detach: this);
   }
 
   // ─── Factories ─────────────────────────────────────────────────────────────
@@ -38,17 +37,13 @@ final class SecretIntList with Zeroizable {
     int length, {
     int fillValue = 0,
     ZeroizePattern? pattern,
-  }) =>
-      SecretIntList._(
-        List<int>.filled(length, fillValue, growable: false),
-        pattern ?? ZeroizeConfig.defaultPattern,
-      );
+  }) => SecretIntList._(
+    List<int>.filled(length, fillValue, growable: false),
+    pattern ?? ZeroizeConfig.defaultPattern,
+  );
 
   /// Creates a [SecretIntList] by copying [source].
-  factory SecretIntList.fromList(
-    List<int> source, {
-    ZeroizePattern? pattern,
-  }) =>
+  factory SecretIntList.fromList(List<int> source, {ZeroizePattern? pattern}) =>
       SecretIntList._(
         List<int>.of(source, growable: false),
         pattern ?? ZeroizeConfig.defaultPattern,

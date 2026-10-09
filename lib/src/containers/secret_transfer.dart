@@ -65,10 +65,7 @@ final class SecretTransfer {
   /// [data] is copied into the transferable buffer and then overwritten using
   /// [pattern]. Pass the buffer you were about to hand to `Isolate.run` and the
   /// copy-then-wipe step happens for you.
-  static SecretTransfer fromBytes(
-    Uint8List data, {
-    ZeroizePattern? pattern,
-  }) {
+  static SecretTransfer fromBytes(Uint8List data, {ZeroizePattern? pattern}) {
     final transfer = SecretTransfer._(
       TransferableTypedData.fromList(<Uint8List>[data]),
       data.length,

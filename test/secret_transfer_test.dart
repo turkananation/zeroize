@@ -10,8 +10,11 @@ void main() {
       final raw = Uint8List.fromList(List<int>.filled(32, 0xAB));
       final transfer = SecretTransfer.fromBytes(raw);
 
-      expect(raw.every((b) => b == 0), isTrue,
-          reason: 'source buffer must be wiped after the copy exists');
+      expect(
+        raw.every((b) => b == 0),
+        isTrue,
+        reason: 'source buffer must be wiped after the copy exists',
+      );
       expect(transfer.length, 32);
       expect(transfer.isConsumed, isFalse);
     });
@@ -32,8 +35,14 @@ void main() {
       transfer.materializeSecret().dispose();
 
       expect(transfer.isConsumed, isTrue);
-      expect(() => transfer.materializeSecret(), throwsA(isA<ZeroizeDisposedError>()));
-      expect(() => transfer.materializeBytes(), throwsA(isA<ZeroizeDisposedError>()));
+      expect(
+        () => transfer.materializeSecret(),
+        throwsA(isA<ZeroizeDisposedError>()),
+      );
+      expect(
+        () => transfer.materializeBytes(),
+        throwsA(isA<ZeroizeDisposedError>()),
+      );
       expect(transfer.toString(), 'SecretTransfer(consumed)');
     });
 
@@ -55,7 +64,10 @@ void main() {
 
       final recovered = transfer.materializeSecret();
       addTearDown(recovered.dispose);
-      expect(recovered.use((b) => List<int>.from(b)), List<int>.filled(32, 0x11));
+      expect(
+        recovered.use((b) => List<int>.from(b)),
+        List<int>.filled(32, 0x11),
+      );
     });
 
     test('intoTransfer on a disposed container throws', () {
@@ -105,53 +117,66 @@ void main() {
       expect(transfer.isConsumed, isFalse);
     });
 
-    test('a second hop on the same transfer fails in the receiving isolate',
-        () async {
-      final transfer = SecretTransfer.fromBytes(Uint8List.fromList([9, 9, 9]));
+    test(
+      'a second hop on the same transfer fails in the receiving isolate',
+      () async {
+        final transfer = SecretTransfer.fromBytes(
+          Uint8List.fromList([9, 9, 9]),
+        );
 
-      final error = await Isolate.run(() {
-        transfer.materializeSecret().dispose();
-        try {
-          transfer.materializeSecret();
-          return null;
-        } on ZeroizeDisposedError catch (e) {
-          return e.runtimeType.toString();
-        }
-      });
+        final error = await Isolate.run(() {
+          transfer.materializeSecret().dispose();
+          try {
+            transfer.materializeSecret();
+            return null;
+          } on ZeroizeDisposedError catch (e) {
+            return e.runtimeType.toString();
+          }
+        });
 
-      expect(error, 'ZeroizeDisposedError');
-    });
+        expect(error, 'ZeroizeDisposedError');
+      },
+    );
   });
 
   group('SecretTransfer — moveInto target too small', () {
     test('throws a contract error and consumes the transfer', () {
-      final transfer =
-          SecretTransfer.fromBytes(Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]));
+      final transfer = SecretTransfer.fromBytes(
+        Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]),
+      );
       final target = SecretBytes.ofLength(4);
       addTearDown(target.dispose);
 
-      expect(() => transfer.moveInto(target),
-          throwsA(isA<ZeroizeContractError>()));
+      expect(
+        () => transfer.moveInto(target),
+        throwsA(isA<ZeroizeContractError>()),
+      );
       expect(transfer.isConsumed, isTrue);
     });
 
-    test('larger target keeps the transferred length and zero-fills the rest',
-        () {
-      final transfer = SecretTransfer.fromBytes(Uint8List.fromList([9, 8, 7]));
-      final target = SecretBytes.ofLength(6);
-      addTearDown(target.dispose);
+    test(
+      'larger target keeps the transferred length and zero-fills the rest',
+      () {
+        final transfer = SecretTransfer.fromBytes(
+          Uint8List.fromList([9, 8, 7]),
+        );
+        final target = SecretBytes.ofLength(6);
+        addTearDown(target.dispose);
 
-      transfer.moveInto(target);
+        transfer.moveInto(target);
 
-      expect(target.use((b) => List<int>.from(b)), [9, 8, 7, 0, 0, 0]);
-    });
+        expect(target.use((b) => List<int>.from(b)), [9, 8, 7, 0, 0, 0]);
+      },
+    );
   });
 
   group('SecretTransfer — source wipe evidence', () {
     test('the buffer handed to fromBytes is all-zero afterwards', () {
       // Regression guard in the style of pqkeystore AGENTS rule 10: this must
       // FAIL if the secureZero call is removed from fromBytes.
-      final raw = Uint8List.fromList(List<int>.generate(64, (i) => (i * 31 + 7) & 0xFF));
+      final raw = Uint8List.fromList(
+        List<int>.generate(64, (i) => (i * 31 + 7) & 0xFF),
+      );
       final transfer = SecretTransfer.fromBytes(raw);
 
       expect(raw.every((b) => b == 0), isTrue);
@@ -169,8 +194,11 @@ void main() {
 
       final transfer = secret.intoTransfer();
 
-      expect(captured.every((b) => b == 0), isTrue,
-          reason: 'disposing SecretBytes must zero the captured backing store');
+      expect(
+        captured.every((b) => b == 0),
+        isTrue,
+        reason: 'disposing SecretBytes must zero the captured backing store',
+      );
       transfer.materializeSecret().dispose();
     });
   });

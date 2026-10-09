@@ -12,8 +12,11 @@ void main() {
         );
         secureZero(data, pattern: pattern);
         final expectedByte = pattern == ZeroizePattern.ones ? 0xFF : 0x00;
-        expect(data.every((b) => b == expectedByte), isTrue,
-            reason: 'Pattern ${pattern.name} left unexpected bytes');
+        expect(
+          data.every((b) => b == expectedByte),
+          isTrue,
+          reason: 'Pattern ${pattern.name} left unexpected bytes',
+        );
       });
     }
   });
@@ -87,10 +90,7 @@ void main() {
 
     test('asserts when range exceeds buffer length', () {
       final data = Uint8List.fromList([1, 2, 3]);
-      expect(
-        () => secureZeroRange(data, 2, 2),
-        throwsA(isA<AssertionError>()),
-      );
+      expect(() => secureZeroRange(data, 2, 2), throwsA(isA<AssertionError>()));
     });
   });
 
@@ -116,8 +116,11 @@ void main() {
         final data = List<int>.generate(32, (i) => i * 100);
         secureZeroIntList(data, pattern: pattern);
         final expected = pattern == ZeroizePattern.ones ? 0xFF : 0;
-        expect(data.every((v) => v == expected), isTrue,
-            reason: 'Pattern ${pattern.name} left unexpected elements');
+        expect(
+          data.every((v) => v == expected),
+          isTrue,
+          reason: 'Pattern ${pattern.name} left unexpected elements',
+        );
       }
     });
   });

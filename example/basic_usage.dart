@@ -60,9 +60,7 @@ void example2ZeroizeScope() {
     // Derive a session key from IKM — both live in the scope.
     final ikmSecret = scope.track(SecretBytes.fromUint8List(rawIkm));
     final derivedKey = scope.track(
-      SecretBytes.fromList(
-        ikmSecret.use((ikm) => simulateKdf(ikm)),
-      ),
+      SecretBytes.fromList(ikmSecret.use((ikm) => simulateKdf(ikm))),
     );
 
     // Use derived key for encryption.
@@ -166,10 +164,7 @@ void example7Guards() {
   final tempKey = Uint8List.fromList(List<int>.generate(32, (i) => i));
 
   // withZeroizedBytes zeroes tempKey even if the lambda throws.
-  final result = withZeroizedBytes(
-    tempKey,
-    (key) => simulateKdf(key),
-  );
+  final result = withZeroizedBytes(tempKey, (key) => simulateKdf(key));
 
   print('Derived: ${result.toHexString().substring(0, 16)}...');
   print('tempKey zeroed: ${tempKey.isAllZero}');
@@ -201,7 +196,8 @@ void example8SecretBox() {
   );
 
   box.use(
-      (kp) => print('PK: ${kp.publicKey.toHexString().substring(0, 8)}...'));
+    (kp) => print('PK: ${kp.publicKey.toHexString().substring(0, 8)}...'),
+  );
   box.dispose();
   print('Keypair disposed: ${box.isDisposed}');
 }

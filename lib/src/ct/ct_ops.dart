@@ -114,7 +114,9 @@ bool ctVerifyTag(Uint8List expected, Uint8List received) {
 @pragma('vm:prefer-inline')
 int ctSelect(int condition, int ifOne, int ifZero) {
   assert(
-      condition == 0 || condition == 1, 'ctSelect: condition must be 0 or 1');
+    condition == 0 || condition == 1,
+    'ctSelect: condition must be 0 or 1',
+  );
   final mask = -condition;
   return (mask & ifOne) | (~mask & ifZero);
 }

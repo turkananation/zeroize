@@ -63,10 +63,7 @@ final class PasswordInput {
   /// The caller takes ownership of the returned [SecretBytes].
   SecretBytes toUtf8SecretBytes({ZeroizePattern? pattern}) {
     _assertLive();
-    return SecretBytes.fromList(
-      utf8.encode(_password!),
-      pattern: pattern,
-    );
+    return SecretBytes.fromList(utf8.encode(_password!), pattern: pattern);
   }
 
   /// Encodes each Unicode code point as a big-endian 32-bit integer.

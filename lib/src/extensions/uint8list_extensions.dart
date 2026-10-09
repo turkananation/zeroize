@@ -46,8 +46,6 @@ extension Uint8ListZeroize on Uint8List {
 /// Secure-zeroing convenience methods on [List<int>].
 extension ListIntZeroize on List<int> {
   /// Overwrites this list in-place using [pattern].
-  void secureZeroize({ZeroizePattern? pattern}) => secureZeroIntList(
-        this,
-        pattern: pattern ?? ZeroizeConfig.defaultPattern,
-      );
+  void secureZeroize({ZeroizePattern? pattern}) =>
+      secureZeroIntList(this, pattern: pattern ?? ZeroizeConfig.defaultPattern);
 }
