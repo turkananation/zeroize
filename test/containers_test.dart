@@ -458,10 +458,29 @@ void main() {
         SecretBuffer.fromStream(stream),
         throwsA(isA<StateError>()),
       );
-      // Note: the partial buffer built before the failure is disposed inside
-      // fromStream, but SecretBuffer is not registered with ZeroizeConfig's
-      // debug tracker (only SecretBytes is), so that wipe is not observable
-      // from here. See doc/ROADMAP.md.
+    });
+
+    test('fromStream leaves no live buffer when the stream fails', () async {
+      // Regression test. SecretBuffer was not registered with ZeroizeConfig's
+      // debug tracker, so the partial buffer that fromStream disposes on a
+      // stream error had no observable signal and could not be asserted on. It
+      // is tracked now, so removing that dispose() makes this test fail.
+      final before = ZeroizeConfig.liveSecretBufferCount;
+      final stream = Stream<List<int>>.multi((controller) {
+        controller.add([1, 2, 3, 4]);
+        controller.addError(StateError('stream failed'));
+      });
+
+      await expectLater(
+        SecretBuffer.fromStream(stream),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(
+        ZeroizeConfig.liveSecretBufferCount,
+        equals(before),
+        reason: 'fromStream must dispose its partial buffer before rethrowing',
+      );
     });
 
     test('fromStream honours a custom pattern', () async {
@@ -859,6 +878,56 @@ void main() {
       final s = SecretBytes.fromList([1]);
       s.dispose();
       expect(() => ZeroizeConfig.debugAssertNoLeaks(), returnsNormally);
+    });
+
+    test('liveSecretCount is the sum of both container types', () {
+      final bytes = SecretBytes.fromList([1, 2]);
+      final buf = SecretBuffer()..addByte(0xAB);
+      expect(
+        ZeroizeConfig.liveSecretCount,
+        equals(
+          ZeroizeConfig.liveSecretBytesCount +
+              ZeroizeConfig.liveSecretBufferCount,
+        ),
+      );
+      expect(ZeroizeConfig.liveSecretBytesCount, greaterThan(0));
+      expect(ZeroizeConfig.liveSecretBufferCount, greaterThan(0));
+
+      buf.seal().dispose();
+      bytes.dispose();
+      expect(ZeroizeConfig.liveSecretBytesCount, 0);
+      expect(ZeroizeConfig.liveSecretBufferCount, 0);
+    });
+
+    test('SecretBuffer is counted, and sealing stops the count', () {
+      final before = ZeroizeConfig.liveSecretBufferCount;
+      final buf = SecretBuffer();
+      expect(ZeroizeConfig.liveSecretBufferCount, equals(before + 1));
+
+      // seal() wipes the backing allocation, so it is no longer live secret.
+      final sealed = buf.seal();
+      expect(ZeroizeConfig.liveSecretBufferCount, equals(before));
+      sealed.dispose();
+    });
+
+    test('SecretBuffer dispose is idempotent for the leak counter', () {
+      final before = ZeroizeConfig.liveSecretBufferCount;
+      final buf = SecretBuffer();
+      expect(ZeroizeConfig.liveSecretBufferCount, equals(before + 1));
+      buf.dispose();
+      buf.dispose();
+      buf.dispose();
+      // A double-decrement would show up as a negative count here.
+      expect(ZeroizeConfig.liveSecretBufferCount, equals(before));
+    });
+
+    test('a disposed SecretBuffer is still counted after seal()', () {
+      final before = ZeroizeConfig.liveSecretBufferCount;
+      final buf = SecretBuffer();
+      buf.seal().dispose();
+      // dispose() after seal must not decrement a second time.
+      buf.dispose();
+      expect(ZeroizeConfig.liveSecretBufferCount, equals(before));
     });
   });
 

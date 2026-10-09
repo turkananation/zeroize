@@ -63,14 +63,16 @@
 - ~~`SecretBuffer.fromStream`~~ — shipped, see above.
 - ~~`addSecretBytes`~~ — shipped, see above.
 
-> **Known gap: `SecretBuffer` is not leak-tracked.** `ZeroizeConfig.trackAllocate`
-> / `trackDispose` are wired up in `SecretBytes` only, so
-> `ZeroizeConfig.debugAssertNoLeaks()` cannot see a leaked `SecretBuffer` — and
-> therefore cannot see the partial buffer that `fromStream` disposes on a stream
-> error. That wipe is correct, but it is not regression-tested: there is no
-> observable signal. Wiring `SecretBuffer` into the tracker would fix it, and is
-> deliberately left for a change that also reconsiders what `liveSecretCount`
-> means for callers.
+> **Fixed in 0.2.0: `SecretBuffer` is now leak-tracked.** Previously
+> `ZeroizeConfig.trackAllocate` / `trackDispose` were wired into `SecretBytes`
+> only, so `debugAssertNoLeaks()` could not see a leaked `SecretBuffer` — and
+> therefore could not see the partial buffer that `fromStream` disposes on a
+> stream error. That wipe was correct but untested, because there was no
+> observable signal. `ZeroizeConfig` now keeps per-type counters:
+> `liveSecretBytesCount` and `liveSecretBufferCount`, with `liveSecretCount` as
+> their sum (its name is unchanged; its scope widened). `debugAssertNoLeaks()`
+> names which container type leaked. The `fromStream` failure path now has a
+> regression test that fails if the `dispose()` is removed.
 
 ### `SecretInt32List` / `SecretInt64List`
 

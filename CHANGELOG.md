@@ -49,6 +49,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bytes are copied, mutating the source afterwards does not change what was
   appended.
 
+#### Leak tracking covers SecretBuffer
+
+`ZeroizeConfig`'s debug tracker was wired into `SecretBytes` only. A
+`SecretBuffer` that was allocated and dropped without being disposed or sealed
+was invisible to `debugAssertNoLeaks()`, which reported `0` and passed.
+
+- `SecretBuffer` is now tracked. It stops counting when **either** `seal()` or
+  `dispose()` runs — both wipe the backing allocation, and the counter tracks
+  live secret *material*, not live objects.
+- `ZeroizeConfig.liveSecretBytesCount` and `liveSecretBufferCount` expose the
+  per-type figures.
+- `ZeroizeConfig.liveSecretCount` is now the **sum** of both. The name is
+  unchanged; the scope widened. Code asserting `liveSecretCount == 0` will now
+  also catch a leaked `SecretBuffer` — which is the point, but is a behaviour
+  change for anyone relying on the old SecretBytes-only meaning.
+- `debugAssertNoLeaks()` now names which container type leaked, instead of
+  reporting a bare total.
+- This makes `SecretBuffer.fromStream`'s wipe-on-stream-error path observable,
+  and it is now covered by a regression test that fails if that `dispose()` is
+  removed.
+
+Counters remain inside `assert()` closures, so this is free in release/AOT.
+
 ### Notes
 
 - `SecretTransfer` is **not** a memory-erasure guarantee. The buffer inside
