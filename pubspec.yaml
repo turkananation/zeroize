@@ -2,7 +2,7 @@ name: zeroize
 description: >-
   Best-effort secret memory zeroing, constant-time operations, and secure
   containers for pure Dart. No FFI or dart:io required.
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/turkananation/zeroize
 repository: https://github.com/turkananation/zeroize
 issue_tracker: https://github.com/turkananation/zeroize/issues

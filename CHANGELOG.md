@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-10-08
+
+### Added
+
+#### Isolate transfer
+
+- `SecretTransfer` — a **sendable** handle for secret bytes that must cross an
+  isolate boundary. `SecretBytes` cannot be sent: it holds a `Finalizer` token and
+  a non-sendable buffer, so `Isolate.run` and `SendPort` reject it. Previously the
+  only portable option was a bare `Uint8List` wiped by hand on both sides.
+  - `SecretTransfer.fromBytes(Uint8List)` — copies into the transferable buffer
+    and zeroes the source immediately.
+  - `materializeSecret()` — moves into a new `SecretBytes`, zeroing the
+    materialized buffer in a `finally`.
+  - `materializeBytes()` — moves into a bare `Uint8List` for APIs that require
+    one (`PointyCastle`, `package:cryptography`). Caller owns and must wipe it.
+  - `moveInto(SecretBytes)` — moves directly into an existing container; throws
+    `ZeroizeContractError` if the target is too small, and wipes the transferred
+    buffer either way.
+  - `length`, `isConsumed`.
+- `SecretBytes.intoTransfer()` — moves this container's bytes into a transfer and
+  zeroes/disposes the source, so exactly one live copy exists afterwards.
+
+### Notes
+
+- `SecretTransfer` is **not** a memory-erasure guarantee. The buffer inside
+  `TransferableTypedData` is runtime-managed and cannot be overwritten from Dart;
+  the GC may still copy any `Uint8List` before it is zeroed; and pure Dart has no
+  `mlock`. These are the same limits as the rest of the package and are stated in
+  the class documentation.
+- Single-consumption is **per isolate copy**, not global. Isolates do not share
+  object state, so sending one transfer to two isolates yields two consumable
+  copies. Send a transfer to exactly one receiver.
+- Zero dependencies added. `package:meta` remains the only runtime dependency and
+  no `dart:ffi` or `dart:io` was introduced.
+
 ---
 
 ## [0.1.0] — 2026-09-23
