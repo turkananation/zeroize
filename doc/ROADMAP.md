@@ -22,13 +22,30 @@
 
 ---
 
-## v0.2.0 — Hardening & Ergonomics (Planned)
+## v0.2.0 — Hardening & Ergonomics
+
+### Shipped in 0.2.0
+
+- `SecretTransfer` — sendable handle for secret bytes crossing an isolate
+  boundary, plus `SecretBytes.intoTransfer()`. `SecretBytes` cannot be sent: it
+  holds a `Finalizer` token and a non-sendable buffer. See `CHANGELOG.md` for the
+  full surface and its non-claims.
+- `SecretBuffer.fromStream` — chunk-at-a-time stream accumulation, with the
+  partial buffer disposed if the stream errors.
+- `SecretBuffer.addSecretBytes` — append another container's bytes with no
+  intermediate list.
 
 ### Timing Verification Tooling
 
 - `TimingProbe` utility: wraps a function and samples wall-clock
   distribution to detect statistical CT violations in test environments.
 - Integration with `dart test` for automated CT regression detection.
+
+  > **Caveat, not a commitment.** Wall-clock sampling in Dart measures the
+  > scheduler and the VM's own jitter as much as the code under test. A
+  > `TimingProbe` reporting "no violation detected" is not evidence of
+  > constant-time execution. Treat it as a smoke test for gross regressions,
+  > never as proof.
 
 ### Isolate Utilities (opt-in)
 
@@ -38,10 +55,22 @@
   whose heap is discarded on exit.
 - Platform detection so web builds fail at compile time rather than runtime.
 
+  > `SecretTransfer` (shipped above) is the prerequisite these were waiting on:
+  > an isolate entry point needs something that can cross the boundary at all.
+
 ### Enhanced `SecretBuffer`
 
-- `SecretBuffer.fromStream(Stream<List<int>>)` — async streaming fill.
-- `addSecretBytes(SecretBytes)` — zero-copy append from another container.
+- ~~`SecretBuffer.fromStream`~~ — shipped, see above.
+- ~~`addSecretBytes`~~ — shipped, see above.
+
+> **Known gap: `SecretBuffer` is not leak-tracked.** `ZeroizeConfig.trackAllocate`
+> / `trackDispose` are wired up in `SecretBytes` only, so
+> `ZeroizeConfig.debugAssertNoLeaks()` cannot see a leaked `SecretBuffer` — and
+> therefore cannot see the partial buffer that `fromStream` disposes on a stream
+> error. That wipe is correct, but it is not regression-tested: there is no
+> observable signal. Wiring `SecretBuffer` into the tracker would fix it, and is
+> deliberately left for a change that also reconsiders what `liveSecretCount`
+> means for callers.
 
 ### `SecretInt32List` / `SecretInt64List`
 
@@ -52,6 +81,10 @@
 
 - A read-only window onto a sub-region of `SecretBytes` without copying.
 - Useful for zero-copy key schedule derivation.
+- **Not yet designed.** A non-copying view shares a lifetime with its parent, so
+  `dispose` semantics, the "do not retain the `use()` reference" contract, and
+  leak tracking all need a decision first. Deliberately left out of 0.2.0 rather
+  than shipped with guessed ownership rules.
 
 ---
 

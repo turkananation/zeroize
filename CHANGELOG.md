@@ -32,6 +32,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SecretBytes.intoTransfer()` — moves this container's bytes into a transfer and
   zeroes/disposes the source, so exactly one live copy exists afterwards.
 
+#### Streaming and container append
+
+- `SecretBuffer.fromStream(Stream<List<int>>, {initialCapacity, pattern})` —
+  accumulates a stream chunk by chunk. Peak secret memory is one internal
+  allocation plus the chunk currently being appended; the stream is never
+  materialised in full a second time. Empty chunks are skipped. The returned
+  buffer is not sealed — the caller still owns it.
+- `SecretBuffer.fromStream` **disposes the partial buffer if the stream emits an
+  error** before rethrowing, so a stream that fails mid-flight does not leave
+  partially accumulated key material live in the heap.
+- `SecretBuffer.addSecretBytes(SecretBytes)` — appends another container's bytes
+  directly into the buffer, allocating no intermediate list. Bytes are read
+  through `SecretBytes.use`, so no reference to the source's backing buffer
+  outlives the copy. The source is **not** consumed or disposed, and because the
+  bytes are copied, mutating the source afterwards does not change what was
+  appended.
+
 ### Notes
 
 - `SecretTransfer` is **not** a memory-erasure guarantee. The buffer inside
